@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
+import { Loader2, Upload, Trash2, X } from "lucide-react"
 
 type Door = {
   id: string
@@ -31,6 +31,8 @@ const DOOR_CATEGORIES = [
 
 export default function AdminPage() {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [doors, setDoors] = useState<Door[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -51,7 +53,10 @@ export default function AdminPage() {
   const loadDoors = async () => {
     try {
       const supabase = createClient()
-      const { data, error } = await supabase.from("doors").select("*")
+      const { data, error } = await supabase
+        .from("doors")
+        .select("*")
+        .order("created_at", { ascending: false })
       if (error) throw error
       setDoors(data || [])
     } catch (error) {
@@ -64,6 +69,19 @@ export default function AdminPage() {
   const handleLogout = () => {
     localStorage.removeItem("adminAuth")
     router.push("/admin/login")
+  }
+
+  // FIXED: Type-safe file processing using reader.result directly
+  const processFile = (file: File) => {
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (reader.result) {
+          setNewDoor((prev) => ({ ...prev, image_url: reader.result as string }))
+        }
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const handleDrag = (e: React.DragEvent) => {
@@ -80,54 +98,37 @@ export default function AdminPage() {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0]
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            setNewDoor({ ...newDoor, image_url: event.target.result as string })
-          }
-        }
-        reader.readAsDataURL(file)
-      }
+      processFile(e.dataTransfer.files[0])
     }
   }
 
   const addDoor = async () => {
-    if (!newDoor.name || !newDoor.description || !newDoor.image_url || !newDoor.category) {
-      return
-    }
+    if (!newDoor.name || !newDoor.description || !newDoor.image_url || !newDoor.category) return
 
     setIsAdding(true)
     try {
       const supabase = createClient()
       const { data, error } = await supabase
         .from("doors")
-        .insert([
-          {
-            name: newDoor.name,
-            description: newDoor.description,
-            image_url: newDoor.image_url,
-            category: newDoor.category,
-          },
-        ])
+        .insert([newDoor])
         .select()
 
       if (error) throw error
       if (data) {
-        setDoors([...doors, data[0]])
+        setDoors([data[0], ...doors])
         setNewDoor({ name: "", description: "", image_url: "", category: "" })
       }
     } catch (error) {
       console.error("Error adding door:", error)
+      alert("Error: Database row limit exceeded (Base64 images are very large).")
     } finally {
       setIsAdding(false)
     }
   }
 
   const deleteDoor = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this door?")) return
     try {
       const supabase = createClient()
       const { error } = await supabase.from("doors").delete().eq("id", id)
@@ -138,165 +139,154 @@ export default function AdminPage() {
     }
   }
 
-  if (!isAuthenticated) {
-    return null
-  }
+  if (!isAuthenticated) return null
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-foreground mb-2">WoodLane Admin</h1>
-            <p className="text-muted-foreground">Manage your door catalog</p>
+            <h1 className="text-4xl font-serif font-bold text-foreground">WoodLane Admin</h1>
+            <p className="text-muted-foreground">Update your product gallery</p>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
+          <Button variant="ghost" onClick={handleLogout} className="text-destructive hover:bg-destructive/10">
             Logout
           </Button>
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Add New Door</CardTitle>
-              <CardDescription>Add a new door design to your collection</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="door-name">Door Name</Label>
-                <Input
-                  id="door-name"
-                  placeholder="e.g., Modern Glass Panel"
-                  value={newDoor.name}
-                  onChange={(e) => setNewDoor({ ...newDoor, name: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="door-description">Description</Label>
-                <Input
-                  id="door-description"
-                  placeholder="e.g., Contemporary design with frosted glass"
-                  value={newDoor.description}
-                  onChange={(e) => setNewDoor({ ...newDoor, description: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="door-category">Category</Label>
-                <Select value={newDoor.category} onValueChange={(value) => setNewDoor({ ...newDoor, category: value })}>
-                  <SelectTrigger id="door-category">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DOOR_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="door-image">Upload Image</Label>
-                <div
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition ${dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/30"
-                    }`}
-                >
-                  {newDoor.image_url ? (
-                    <div className="space-y-2">
-                      <div className="w-32 h-32 mx-auto bg-muted rounded-lg overflow-hidden">
-                        <img
-                          src={newDoor.image_url || "/placeholder.svg"}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground">Image uploaded. Drag another to replace.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Drag and drop your image here</p>
-                      <p className="text-xs text-muted-foreground">or click to browse</p>
-                    </div>
-                  )}
-                  <input
-                    id="door-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        const reader = new FileReader()
-                        reader.onload = (event) => {
-                          if (event.target?.result) {
-                            setNewDoor({ ...newDoor, image_url: event.target.result as string })
-                          }
-                        }
-                        reader.readAsDataURL(e.target.files[0])
-                      }
-                    }}
-                    className="hidden"
+        <div className="grid lg:grid-cols-5 gap-8">
+          {/* Add Form Column */}
+          <div className="lg:col-span-2">
+            <Card className="sticky top-24">
+              <CardHeader>
+                <CardTitle>Add New Door</CardTitle>
+                <CardDescription>Fill in details and upload an image</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Door Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g., Premium Rosewood Main Door"
+                    value={newDoor.name}
+                    onChange={(e) => setNewDoor({ ...newDoor, name: e.target.value })}
                   />
                 </div>
-              </div>
 
-              <Button
-                onClick={addDoor}
-                className="w-full"
-                disabled={!newDoor.name || !newDoor.description || !newDoor.image_url || !newDoor.category || isAdding}
-              >
-                {isAdding ? "Adding..." : "Add Door"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Door Inventory</CardTitle>
-              <CardDescription>Manage your existing doors</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <p className="text-center text-muted-foreground py-8">Loading doors...</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {doors.map((door) => (
-                    <div key={door.id} className="border rounded-lg overflow-hidden flex flex-col">
-                      <div className="p-4 flex-1 flex flex-col">
-                        <div className="aspect-[3/4] bg-muted rounded-lg mb-3 overflow-hidden">
-                          <img
-                            src={door.image_url || "/placeholder.svg"}
-                            alt={door.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <h3 className="font-semibold mb-1">{door.name}</h3>
-                        <p className="text-xs text-primary mb-2">{door.category}</p>
-                        <p className="text-sm text-muted-foreground mb-4 flex-1">{door.description}</p>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteDoor(door.id)}
-                          className="w-full"
-                          style={{ backgroundColor: 'white', color: '#dc2626', cursor: 'pointer' }}
-                        >
-                          Delete Door
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={newDoor.category} onValueChange={(v) => setNewDoor({ ...newDoor, category: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+                    <SelectContent>
+                      {DOOR_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-              {doors.length === 0 && !isLoading && (
-                <p className="text-center text-muted-foreground py-8">No doors added yet</p>
-              )}
-            </CardContent>
-          </Card>
+
+                <div className="space-y-2">
+                  <Label htmlFor="desc">Description</Label>
+                  <Input
+                    id="desc"
+                    placeholder="Brief description of finish/material"
+                    value={newDoor.description}
+                    onChange={(e) => setNewDoor({ ...newDoor, description: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Image Upload</Label>
+                  {/* Container clicks trigger the hidden file input */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[200px] ${
+                      dragActive ? "border-primary bg-primary/5 scale-[1.02]" : "border-muted-foreground/20 hover:border-primary/50"
+                    }`}
+                  >
+                    {newDoor.image_url ? (
+                      <div className="relative w-full aspect-square max-w-[160px]">
+                        <img src={newDoor.image_url} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setNewDoor({...newDoor, image_url: ""})}}
+                          className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 text-muted-foreground">
+                        <Upload className="mx-auto h-10 w-10 opacity-40 mb-2" />
+                        <p className="text-sm font-medium text-foreground">Click to browse or drop image</p>
+                        <p className="text-xs">Supports: JPG, PNG, WEBP</p>
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  onClick={addDoor}
+                  className="w-full py-6"
+                  disabled={!newDoor.name || !newDoor.image_url || !newDoor.category || isAdding}
+                >
+                  {isAdding ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding to DB...</> : "Upload Door"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* List Column */}
+          <div className="lg:col-span-3">
+            <h2 className="text-xl font-semibold mb-4">Current Inventory ({doors.length})</h2>
+            
+            {isLoading ? (
+              <div className="flex flex-col items-center py-20 gap-2">
+                <Loader2 className="animate-spin h-10 w-10 text-primary" />
+                <p className="text-sm text-muted-foreground">Fetching catalog...</p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {doors.map((door) => (
+                  <Card key={door.id} className="overflow-hidden group relative">
+                    <div className="aspect-[4/5] w-full">
+                      <img src={door.image_url} alt={door.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-3">
+                      <p className="text-[10px] uppercase font-bold text-primary">{door.category}</p>
+                      <h3 className="font-medium text-sm truncate">{door.name}</h3>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{door.description}</p>
+                      
+                      <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        onClick={() => deleteDoor(door.id)}
+                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+            
+            {!isLoading && doors.length === 0 && (
+              <div className="text-center py-20 border-2 border-dashed rounded-xl bg-muted/20">
+                <p className="text-muted-foreground italic">No products found in the database.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

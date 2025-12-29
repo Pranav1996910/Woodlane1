@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image" // 1. Import the Image component
 import { Button } from "@/components/ui/button"
 
 export function Header() {
@@ -7,8 +8,18 @@ export function Header() {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded" />
-            <span className="text-xl lg:text-2xl font-serif font-semibold text-foreground">WoodLane</span>
+            {/* 2. Replaced div with Image component */}
+            <Image 
+              src="./images/woodlane.jpeg"          // Ensure your logo is in the public folder
+              alt="WoodLane Logo" 
+              width={60}               // Adjust width as needed
+              height={60}              // Adjust height as needed
+              className="object-contain"
+              priority                 // Ensures the logo loads fast
+            />
+            <span className="text-xl lg:text-2xl font-serif font-semibold text-foreground">
+              WoodLane
+            </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -23,7 +34,9 @@ export function Header() {
             </Link>
           </nav>
 
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Get Quote</Button>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            Get Quote
+          </Button>
         </div>
       </div>
     </header>

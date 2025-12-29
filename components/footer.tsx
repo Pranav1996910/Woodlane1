@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image" // 1. Import the Image component
 
 export function Footer() {
   return (
@@ -7,7 +8,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary-foreground rounded" />
+              {/* 2. Replaced div with Image component */}
+              <Image
+                src="./images/woodlane.jpeg"          // Ensure your logo is in the public folder
+                alt="WoodLane Logo"
+                width={60}               // Adjust width as needed
+                height={60}              // Adjust height as needed
+                className="object-contain"
+                priority                 // Ensures the logo loads fast
+              />
               <span className="text-xl font-serif font-semibold">WoodLane</span>
             </div>
             <p className="text-sm text-primary-foreground/80 leading-relaxed">

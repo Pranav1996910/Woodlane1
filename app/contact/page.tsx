@@ -21,6 +21,7 @@ export default function ContactFormPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     subject: '',
     message: ''
   })
@@ -55,10 +56,10 @@ export default function ContactFormPage() {
         // If the API route returns an error status (e.g., 500)
         throw new Error('Failed to send email via API.');
       }
-      
+
       // Success
       setSubmissionStatus('success')
-      setFormData({ name: '', email: '', subject: '', message: '' }) 
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
 
     } catch (error) {
       console.error("Submission Error:", error)
@@ -91,7 +92,7 @@ export default function ContactFormPage() {
 
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Contact Information Card (Left Side) */}
           <Card className="lg:w-1/3 shadow-xl bg-card/80 border-primary/20">
             <CardHeader>
@@ -99,7 +100,7 @@ export default function ContactFormPage() {
               <p className="text-sm text-muted-foreground">We are here to help you quickly.</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              
+
               {/* Phone Number */}
               <div className="flex items-start space-x-3">
                 <Phone className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
@@ -132,7 +133,7 @@ export default function ContactFormPage() {
                   </p>
                 </div>
               </div>
-              
+
             </CardContent>
           </Card>
 
@@ -144,7 +145,7 @@ export default function ContactFormPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                
+
                 {/* Name and Email */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -156,7 +157,10 @@ export default function ContactFormPage() {
                     <Input id="email" type="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} required />
                   </div>
                 </div>
-
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input id="phone" type="tel" placeholder="+91 ..." value={formData.phone} onChange={handleChange} required />
+                </div>
                 {/* Subject Field */}
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
