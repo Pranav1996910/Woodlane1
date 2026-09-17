@@ -1,65 +1,120 @@
 import Link from "next/link"
-import Image from "next/image" // 1. Import the Image component
+import { Mail, MapPin, Phone, Clock } from "lucide-react"
+import { Logo } from "@/components/logo"
+
+const productLinks = [
+  { href: "/doors", label: "All doors" },
+  { href: "/#collection", label: "Main doors" },
+  { href: "/#collection", label: "Pooja room doors" },
+  { href: "/#collection", label: "Bedroom doors" },
+  { href: "/#collection", label: "Balcony doors" },
+]
+
+const companyLinks = [
+  { href: "/#about", label: "About us" },
+  { href: "/#process", label: "How we work" },
+  { href: "/contact", label: "Contact" },
+  { href: "/privacy", label: "Privacy policy" },
+  { href: "/terms", label: "Terms of service" },
+]
 
 export function Footer() {
   return (
-    <footer id="contact" className="bg-primary text-primary-foreground">
-      <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              {/* 2. Replaced div with Image component */}
-              <Image
-                src="./images/woodlane.jpeg"          // Ensure your logo is in the public folder
-                alt="WoodLane Logo"
-                width={60}               // Adjust width as needed
-                height={60}              // Adjust height as needed
-                className="object-contain"
-                priority                 // Ensures the logo loads fast
-              />
-              <span className="text-xl font-serif font-semibold">WoodLane</span>
-            </div>
-            <p className="text-sm text-primary-foreground/80 leading-relaxed">
-              Crafting premium doors with passion and precision since 2009.
+    <footer id="contact" className="grain relative overflow-hidden bg-ink text-ink-foreground">
+      <div className="container relative z-10 mx-auto px-4 lg:px-8">
+        <div className="grid gap-12 py-16 lg:grid-cols-12 lg:gap-10 lg:py-20">
+          {/* Brand */}
+          <div className="lg:col-span-4">
+            <Logo size="lg" showTagline />
+
+            <p className="mt-6 max-w-sm text-sm leading-relaxed text-white/55">
+              Made-to-measure hardwood doors, cut, carved and finished in our own Bengaluru
+              workshop since 2009.
             </p>
+
+            <div className="mt-7 flex items-start gap-2.5 text-sm text-white/55">
+              <Clock className="mt-0.5 size-4 shrink-0 text-accent" />
+              <span>
+                Mon&ndash;Sat, 9:30am &ndash; 7:00pm
+                <br />
+                Sunday by appointment
+              </span>
+            </div>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Products</h3>
-            <ul className="space-y-2 text-sm text-primary-foreground/80">
-              <li>
-                <Link href="#doors" className="hover:text-primary-foreground transition-colors">
-                  Door Collection
-                </Link>
-              </li>
+          {/* Links */}
+          <nav className="lg:col-span-2" aria-label="Products">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/40">Doors</h3>
+            <ul className="mt-5 space-y-3 text-sm">
+              {productLinks.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="text-white/65 transition-colors hover:text-accent">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
+          </nav>
 
-          <div>
-            <h3 className="font-semibold mb-4">Company</h3>
-            <ul className="space-y-2 text-sm text-primary-foreground/80">
+          <nav className="lg:col-span-2" aria-label="Company">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/40">Company</h3>
+            <ul className="mt-5 space-y-3 text-sm">
+              {companyLinks.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="text-white/65 transition-colors hover:text-accent">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Contact */}
+          <div className="lg:col-span-4">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/40">Visit or call</h3>
+            <ul className="mt-5 space-y-4 text-sm">
               <li>
-                <Link href="#about" className="hover:text-primary-foreground transition-colors">
-                  About Us
-                </Link>
+                <a
+                  href="tel:+918147478341"
+                  className="flex items-start gap-3 text-white/65 transition-colors hover:text-accent"
+                >
+                  <Phone className="mt-0.5 size-4 shrink-0 text-accent" />
+                  +91 81474 78341
+                </a>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-primary-foreground transition-colors">
-                  Contact
-                </Link>
+                <a
+                  href="mailto:woodlanedoors@gmail.com"
+                  className="flex items-start gap-3 text-white/65 transition-colors hover:text-accent"
+                >
+                  <Mail className="mt-0.5 size-4 shrink-0 text-accent" />
+                  woodlanedoors@gmail.com
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://maps.google.com/?q=285+4th+Cross+Health+Layout+Annapoorneshwari+Nagar+2nd+Stage+Nagarabhavi+Bengaluru+560091"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-3 leading-relaxed text-white/65 transition-colors hover:text-accent"
+                >
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
+                  285, 4th Cross, Health Layout, Annapoorneshwari Nagar, 2nd Stage,
+                  Nagarabhavi, Bengaluru, Karnataka 560091
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-primary-foreground/20 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-primary-foreground/80">
-          <p>© 2025 WoodLane. All rights reserved.</p>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-primary-foreground transition-colors">
-              Privacy Policy
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 py-7 text-sm text-white/45 md:flex-row">
+          <p>&copy; {new Date().getFullYear()} WoodLane. All rights reserved.</p>
+          <div className="flex gap-7">
+            <Link href="/privacy" className="transition-colors hover:text-accent">
+              Privacy
             </Link>
-            <Link href="/terms" className="hover:text-primary-foreground transition-colors">
-              Terms of Service
+            <Link href="/terms" className="transition-colors hover:text-accent">
+              Terms
             </Link>
           </div>
         </div>

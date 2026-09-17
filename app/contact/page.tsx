@@ -1,206 +1,334 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
+import { Loader2, Mail, Phone, MapPin, Clock, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea" // Assuming this component is now defined
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Loader2, Mail, Phone, MapPin } from "lucide-react" // Added icons
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+
+const companyInfo = {
+  phone: "+91 81474 78341",
+  email: "woodlanedoors@gmail.com",
+  address:
+    "285, 4th Cross, Health Layout, Annapoorneshwari Nagar, 2nd Stage, Nagarabhavi, Bengaluru, Karnataka 560091",
+  hours: "Mon–Sat, 9:30am – 7:00pm",
+}
+
+const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(companyInfo.address)}`
 
 export default function ContactFormPage() {
-  // --- Replace these with your actual company contact details ---
-  const companyInfo = {
-    phone: "+91 08147478341",
-    email: "woodlanedoors@gmail.com",
-    address: "285 4th cross Health Layout Annapoorneshwari nagar, 2nd Stage, Naagarabhaavi, Bengaluru, Karnataka 560091",
-  };
-  // -----------------------------------------------------------
-
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [submissionStatus, setSubmissionStatus] = useState<"idle" | "success" | "error">("idle")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value
-    })
+    setFormData({ ...formData, [e.target.id]: e.target.value })
+    if (submissionStatus !== "idle") setSubmissionStatus("idle")
   }
-
-  // ... (inside ContactFormPage component)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setSubmissionStatus('idle')
+    setSubmissionStatus("idle")
 
     try {
-      // Step 1: Send form data to your API route
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      });
+      })
 
-      if (!response.ok) {
-        // If the API route returns an error status (e.g., 500)
-        throw new Error('Failed to send email via API.');
-      }
+      if (!response.ok) throw new Error("Failed to send email via API.")
 
-      // Success
-      setSubmissionStatus('success')
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
-
+      setSubmissionStatus("success")
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" })
     } catch (error) {
       console.error("Submission Error:", error)
-      setSubmissionStatus('error')
+      setSubmissionStatus("error")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const contactItems = [
+    {
+      icon: Phone,
+      label: "Call the workshop",
+      value: companyInfo.phone,
+      href: `tel:${companyInfo.phone.replace(/\s/g, "")}`,
+    },
+    {
+      icon: Mail,
+      label: "Email us",
+      value: companyInfo.email,
+      href: `mailto:${companyInfo.email}`,
+    },
+    {
+      icon: MapPin,
+      label: "Visit us",
+      value: companyInfo.address,
+      href: mapsUrl,
+      external: true,
+    },
+    { icon: Clock, label: "Opening hours", value: companyInfo.hours },
+  ]
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section/Header */}
-      <div
-        className="relative h-48 bg-cover bg-center flex items-center justify-center"
-        style={{
-          backgroundImage: "url('/contact-us-background.jpg')",
-        }}
-      >
-        <div className="absolute inset-0 bg-primary/70" />
-        <div className="relative z-10 flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-              ←
-            </Button>
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white text-balance">Get In Touch</h1>
-        </div>
-      </div>
+    <>
+      <Header />
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <main className="min-h-screen bg-background">
+        {/* Page hero */}
+        <section className="relative isolate flex min-h-[42vh] items-end overflow-hidden bg-ink pb-12 pt-32 text-white lg:min-h-[46vh] lg:pb-16 lg:pt-40">
+          <Image
+            src="/elegant-wooden-doors-background.jpg"
+            alt=""
+            aria-hidden="true"
+            fill
+            priority
+            sizes="100vw"
+            className="-z-10 object-cover"
+          />
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/80 to-ink/45" />
 
-          {/* Contact Information Card (Left Side) */}
-          <Card className="lg:w-1/3 shadow-xl bg-card/80 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-xl">Our Contact Information</CardTitle>
-              <p className="text-sm text-muted-foreground">We are here to help you quickly.</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="container mx-auto px-4 lg:px-8">
+            <nav aria-label="Breadcrumb" className="text-sm text-white/55">
+              <Link href="/" className="transition-colors hover:text-accent">
+                Home
+              </Link>
+              <span className="mx-2 text-white/30">/</span>
+              <span className="text-white/85">Contact</span>
+            </nav>
 
-              {/* Phone Number */}
-              <div className="flex items-start space-x-3">
-                <Phone className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-sm">Call Us</h4>
-                  <a href={`tel:${companyInfo.phone}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {companyInfo.phone}
-                  </a>
-                </div>
-              </div>
+            <h1 className="animate-rise mt-5 max-w-3xl text-balance text-4xl font-bold leading-[1.05] lg:text-6xl">
+              Let&rsquo;s talk about your doorway
+            </h1>
+            <p className="animate-rise mt-5 max-w-xl text-pretty text-lg leading-relaxed text-white/70">
+              Free measurement across Bengaluru, and a fixed itemised quote within two working days.
+            </p>
+          </div>
+        </section>
 
-              {/* Email Address */}
-              <div className="flex items-start space-x-3">
-                <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-sm">Email Support</h4>
-                  <a href={`mailto:${companyInfo.email}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {companyInfo.email}
-                  </a>
-                </div>
-              </div>
+        <div className="container mx-auto px-4 py-16 lg:px-8 lg:py-24">
+          <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
+            {/* Details */}
+            <aside className="lg:col-span-5">
+              <p className="eyebrow">Get in touch</p>
+              <h2 className="mt-4 text-balance text-3xl font-bold text-foreground lg:text-4xl">
+                Reach us however suits you
+              </h2>
+              <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+                Prefer to skip the form? Call or WhatsApp the workshop directly — you&rsquo;ll usually
+                get one of the people who&rsquo;ll actually build your door.
+              </p>
 
-              {/* Address */}
-              <div className="flex items-start space-x-3">
-                <MapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-sm">Visit Us</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {companyInfo.address}
-                  </p>
-                </div>
-              </div>
-
-            </CardContent>
-          </Card>
-
-          {/* Contact Form Card (Right Side) */}
-          <Card className="lg:w-2/3 shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-2xl">Send Us a Message</CardTitle>
-              <p className="text-sm text-muted-foreground">Fill out the form for general inquiries.</p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-
-                {/* Name and Email */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" placeholder="Your Name" value={formData.name} onChange={handleChange} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} required />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" placeholder="+91 ..." value={formData.phone} onChange={handleChange} required />
-                </div>
-                {/* Subject Field */}
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="Inquiry about..." value={formData.subject} onChange={handleChange} required />
-                </div>
-
-                {/* Message Field */}
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" placeholder="Type your message here." rows={5} value={formData.message} onChange={handleChange} required />
-                </div>
-
-                {/* Submission Button */}
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? (
+              <ul className="mt-9 space-y-1">
+                {contactItems.map(({ icon: Icon, label, value, href, external }) => {
+                  const body = (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
+                      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary ring-1 ring-border transition-colors group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-primary">
+                        <Icon className="size-4.5" strokeWidth={1.7} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-xs font-semibold uppercase tracking-[0.13em] text-muted-foreground">
+                          {label}
+                        </span>
+                        <span className="mt-1 block text-[0.9375rem] leading-relaxed text-foreground">
+                          {value}
+                        </span>
+                      </span>
                     </>
-                  ) : (
-                    "Send Message"
-                  )}
-                </Button>
+                  )
 
-                {/* Submission Status Feedback */}
-                {submissionStatus === 'success' && (
-                  <div className="text-center p-3 text-green-600 bg-green-50 rounded-md border border-green-200">
-                    ✅ Thank you! Your message has been sent successfully.
+                  return (
+                    <li key={label}>
+                      {href ? (
+                        <a
+                          href={href}
+                          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                          className="group flex gap-4 rounded-xl p-3 transition-colors hover:bg-secondary/60"
+                        >
+                          {body}
+                        </a>
+                      ) : (
+                        <div className="group flex gap-4 p-3">{body}</div>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+
+              <div className="mt-8 rounded-2xl border border-border bg-secondary/40 p-6">
+                <h3 className="font-serif text-lg font-semibold text-foreground">
+                  Not sure what you need yet?
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  Browse the collection first — most people find it easier to point at a door than
+                  describe one.
+                </p>
+                <Link
+                  href="/doors"
+                  className="group mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary"
+                >
+                  See the door collection
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </aside>
+
+            {/* Form */}
+            <div className="lg:col-span-7">
+              <div className="rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-soft)] lg:p-10">
+                <h2 className="font-serif text-2xl font-bold text-foreground lg:text-3xl">
+                  Send us a message
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Tell us the room, rough opening size and any style you have in mind. Fields marked
+                  <span aria-hidden="true" className="text-accent-foreground/70">
+                    {" "}
+                    *
+                  </span>{" "}
+                  are required.
+                </p>
+
+                <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Name *</Label>
+                      <Input
+                        id="name"
+                        placeholder="Your name"
+                        autoComplete="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="h-11"
+                      />
+                    </div>
                   </div>
-                )}
-                {submissionStatus === 'error' && (
-                  <div className="text-center p-3 text-red-600 bg-red-50 rounded-md border border-red-200">
-                    ❌ Error: Failed to send your message. Please try again later.
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone *</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+91 …"
+                        autoComplete="tel"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="subject">Subject *</Label>
+                      <Input
+                        id="subject"
+                        placeholder="Main door for a 3BHK"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
+                        className="h-11"
+                      />
+                    </div>
                   </div>
-                )}
-              </form>
-            </CardContent>
-          </Card>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Message *</Label>
+                    <Textarea
+                      id="message"
+                      placeholder="Which rooms, roughly what sizes, and any timber or finish you have in mind."
+                      rows={6}
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      className="resize-y"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="h-12 w-full rounded-full text-base"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="animate-spin" />
+                        Sending…
+                      </>
+                    ) : (
+                      "Send message"
+                    )}
+                  </Button>
+
+                  <p aria-live="polite" className="sr-only">
+                    {submissionStatus === "success"
+                      ? "Message sent"
+                      : submissionStatus === "error"
+                        ? "Message failed to send"
+                        : ""}
+                  </p>
+
+                  {submissionStatus === "success" && (
+                    <div className="flex items-start gap-3 rounded-xl border border-success/30 bg-success/10 p-4 text-sm text-foreground">
+                      <CheckCircle2 className="mt-0.5 size-4.5 shrink-0 text-success" />
+                      <span>
+                        <strong className="font-semibold">Message sent.</strong> We&rsquo;ll get back to
+                        you within one working day — usually much sooner.
+                      </span>
+                    </div>
+                  )}
+
+                  {submissionStatus === "error" && (
+                    <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-foreground">
+                      <AlertCircle className="mt-0.5 size-4.5 shrink-0 text-destructive" />
+                      <span>
+                        <strong className="font-semibold">That didn&rsquo;t go through.</strong> Please
+                        try again, or call us on{" "}
+                        <a
+                          href={`tel:${companyInfo.phone.replace(/\s/g, "")}`}
+                          className="font-semibold underline underline-offset-4"
+                        >
+                          {companyInfo.phone}
+                        </a>
+                        .
+                      </span>
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </main>
+
+      <Footer />
+    </>
   )
 }

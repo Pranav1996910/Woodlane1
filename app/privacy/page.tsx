@@ -1,8 +1,10 @@
-"use client"
+import type { Metadata } from "next"
+import { LegalPage, type LegalSection } from "@/components/legal-page"
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "How WoodLane collects, uses and protects your personal information.",
+}
 
 export default function PrivacyPolicyPage() {
   // Replace with your company details
@@ -11,7 +13,7 @@ export default function PrivacyPolicyPage() {
   const companyEmail = "woodlanedoors@gmail.com";
   const effectiveDate = "December 15, 2025";
 
-  const policySections = [
+  const policySections: LegalSection[] = [
     {
       title: "1. Information We Collect",
       content: [
@@ -88,78 +90,12 @@ export default function PrivacyPolicyPage() {
 
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div
-        className="relative h-48 bg-cover bg-center flex items-center justify-center"
-        style={{
-          // Use a generic background image or color for a privacy policy page
-          backgroundImage: "url('/abstract-background.jpg')",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="relative z-10 flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-              ←
-            </Button>
-          </Link>
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white text-balance">Privacy Policy</h1>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-12">
-        {/* Breadcrumb */}
-        <div className="text-sm text-muted-foreground mb-8">
-          <Link href="/" className="hover:text-foreground">
-            Home
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">Privacy Policy</span>
-        </div>
-
-        {/* Main Content Card */}
-        <Card className="shadow-lg">
-          <CardContent className="p-8 space-y-8">
-            <header className="space-y-2">
-              <h2 className="text-2xl font-bold">Privacy Policy for {companyName}</h2>
-              <p className="text-sm text-muted-foreground">
-                **Effective Date:** {effectiveDate}
-              </p>
-              <p className="text-sm">
-                This privacy policy governs the privacy of our Website, {websiteUrl}, and the services we provide. We are committed to protecting your personal information and your right to privacy.
-              </p>
-            </header>
-
-            <hr className="my-4" />
-
-            {/* Policy Sections */}
-            <div className="space-y-10">
-              {policySections.map((section, index) => (
-                <div key={index} className="space-y-4">
-                  <h3 className="text-xl font-semibold text-primary">{section.title}</h3>
-                  {section.content.map((item, itemIndex) => (
-                    <div key={itemIndex} className="space-y-2">
-                      {(item as { heading?: string; text: string }).heading &&
-                        <h4 className="font-medium text-lg mt-4">{(item as { heading?: string; text: string }).heading}</h4>
-                      }
-                      <p className="text-sm whitespace-pre-line leading-relaxed text-muted-foreground">
-                        {item.text}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            <hr className="my-4" />
-
-            <footer className="text-center pt-4">
-              <p className="text-sm text-muted-foreground">Thank you for trusting us with your data.</p>
-            </footer>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <LegalPage
+      title="Privacy Policy"
+      effectiveDate={effectiveDate}
+      intro={`This privacy policy governs the privacy of our website, ${websiteUrl}, and the services we provide. ${companyName} is committed to protecting your personal information and your right to privacy.`}
+      sections={policySections}
+      closing="Thank you for trusting us with your data."
+    />
   )
 }
