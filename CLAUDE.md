@@ -13,6 +13,8 @@ npx tsc --noEmit       # Typecheck — see warning below
 
 There are no tests in this repo.
 
+`npm install` runs clean with no flags — `vaul` (an unused shadcn drawer dependency, nothing in the app imports it) used to force `--legacy-peer-deps` because its `^0.9.9` pin predated its own React 19 support. It was removed rather than bumped, since nothing used it. If a fresh ERESOLVE shows up again, check whether the conflicting package is actually imported anywhere before reaching for `--legacy-peer-deps` — it may be more unused scaffolding (see the `checkbox.tsx`/`@radix-ui/react-checkbox` note elsewhere in this file for another one still lying around).
+
 ### Environment variables
 
 | Variable | Needed for | Notes |
